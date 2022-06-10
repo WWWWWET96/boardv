@@ -13,7 +13,6 @@ public class UserDto {
     private String password;
     private String email;
     private Role role;
-
     @Builder
     public UserDto(String username, String password, String email, Role role) {
         this.username = username;
@@ -21,14 +20,13 @@ public class UserDto {
         this.email = email;
         this.role = role;
     }
-
     //DTO -> Entity
     public User toEntity(){
         User user = User.builder()
                 .username(username)
                 .password(password)
                 .email(email)
-                .role(role.GUEST)
+                .role(role.USER)
                 .build();
         return user;
     }

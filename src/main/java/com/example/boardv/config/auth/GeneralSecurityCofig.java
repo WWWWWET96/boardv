@@ -2,6 +2,7 @@ package com.example.boardv.config.auth;
 
 import com.example.boardv.config.auth.service.General.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -27,6 +28,11 @@ public class GeneralSecurityCofig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth)throws Exception{
         auth.userDetailsService(customUserDetailsService).passwordEncoder(encoder());
+
+
+/* //auth객체에 CustomUserDetailsService를 등록하여 사용자 조회를 UserSecurityService가
+            담당하도록 설정
+            이때, 비밀번호 검증에 사용할 passwordEncoder도 함께 등록*/
     }
 
     @Override
@@ -38,37 +44,21 @@ public class GeneralSecurityCofig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception{
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/", "/auth/**", "/posts/read/**", "/posts/search/**")
+                .antMatchers("/","/resources/**", "/posts/save","/error", "/auth/**", "/api/v1/posts/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
                 .formLogin()//login 경로로 접근하면, Spring Security에서 제공하는 로그인 Form을 사용가능
                 .loginPage("/auth/login")//기본으로 제공되는 form말고, 커스텀 로그인 폼을 사용하기위해 사용하는 메소드
-                .loginProcessingUrl("/loginProc")//security에서 해당 주소로 오는 요청을 낚아채서 수행
+                .loginProcessingUrl("/auth/loginProc")//security에서 해당 주소로 오는 요청을 낚아채서 수행
                 .defaultSuccessUrl("/")//로그인 성공 시 이동되는 페이지
                 .and()
                 .logout()//"/logout"에 접근하면 HTTP세션을 제거해줌
+                .logoutUrl("/logout")
                 .logoutSuccessUrl("/")
+                .deleteCookies("JSESSIONID", "remember-me")
                 .invalidateHttpSession(true);//HTTP세션을 초기화하는 작업
     }
-  /*
 
-
-
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception{
-        auth.userDetailsService(customUserDetailsService).passwordEncoder(encoder());
-    }
-
-    //인증을 무시할 경로를 설정해줌. 밑 주소들은 무조건 접근 가능해야하기 때문에 인증을 무시하게 해 줌
-    @Override
-    public void configure(WebSecurity web)throws Exception{
-        web.ignoring().antMatchers("/css./**", "/js/**", "/img/**");
-    }
-
-    //HttpSecurity를 통해 HTTP요청에 대한 보안을 구성할 수 있음
-
-*/
 }
