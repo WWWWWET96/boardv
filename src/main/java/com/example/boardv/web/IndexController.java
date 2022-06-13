@@ -43,7 +43,7 @@ public class IndexController {
         model.addAttribute("posts", postsService.findAllDesc());
 
         return "index";
-    }*/
+    }
     @GetMapping("/")
     public String index(Model model,Pageable pageable){
 
@@ -55,8 +55,18 @@ public class IndexController {
         model.addAttribute("posts", postsService.findAllDesc(pageable));
 
         return "index";
-    }
+    }*/
+    @GetMapping("/")
+    public String index(Model model, @PageableDefault(size = 5) Pageable pageable){
 
+        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
+        if(user != null)
+        {
+            model.addAttribute("user", user.getUsername());
+        }
+        model.addAttribute("posts", postsService.findAllDesc(pageable));
+       return "index";
+    }
     @GetMapping("/auth/join")
     public String join() {
        return "/login/join";
