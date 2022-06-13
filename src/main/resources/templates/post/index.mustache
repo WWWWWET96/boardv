@@ -1,0 +1,27 @@
+{{>layout/header}}
+<br>
+<div class = "col-md-12">
+    {{#posts}}
+    <div class="col-md-6">
+            <div class="border border-dark">
+                <span>제목</span><br>
+                <span class="mx-5">{{title}}</span>
+            </div>
+    <br>
+            <div class="border border-dark">
+                <span>작성자</span><br>
+               <span class="mx-5">{{author}}</span>
+            </div>
+    <br>
+            <div class="border border-dark">
+                <span>내용</span><br>
+                <span class="mx-5">{{contents}}</span>
+            </div>
+    <br>
+    {{/posts}}
+            <a href="/" role="button" class="btn btn-primary">수정</a>
+            <a href="/" role="button" class="btn btn-secondary">삭제</a>
+    </div>
+</div>
+
+{{>layout/footer}}
