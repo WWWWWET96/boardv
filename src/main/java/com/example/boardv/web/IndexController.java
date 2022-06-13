@@ -9,18 +9,20 @@ import com.example.boardv.service.PostsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -43,30 +45,52 @@ public class IndexController {
         model.addAttribute("posts", postsService.findAllDesc());
 
         return "index";
-    }
-    @GetMapping("/")
-    public String index(Model model,Pageable pageable){
-
-        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
-        if(user != null)
-        {
-            model.addAttribute("user", user.getUsername());
-        }
-        model.addAttribute("posts", postsService.findAllDesc(pageable));
-
-        return "index";
     }*/
     @GetMapping("/")
-    public String index(Model model, @PageableDefault(size = 5) Pageable pageable){
+    public String index(Model model,@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
         if(user != null)
         {
             model.addAttribute("user", user.getUsername());
         }
-        model.addAttribute("posts", postsService.findAllDesc(pageable));
-       return "index";
+        model.addAttribute("posts", postsService.findAll(pageable));
+        model.addAttribute("previous", pageable.previousOrFirst().getPageNumber());
+        model.addAttribute("next", pageable.next().getPageNumber());
+        model.addAttribute("check", postsService.getListCheck(pageable));
+        return "index";
     }
+   /* @GetMapping("/")
+    public String index(Model model, @RequestParam(value = "page", defaultValue = "0") Integer page,
+                        @RequestParam(value = "size", defaultValue = "0" ) Integer size){
+        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
+        if(user != null)
+        {
+            model.addAttribute("user", user.getUsername());
+        }
+        model.addAttribute("posts", postsService.findAllDesc(page, size));
+
+        int totalPages = postsService.findAllDesc(page, size).getTotalPages();
+
+
+        System.out.println(totalPages);
+        ArrayList<String>pageNumbers = new ArrayList<>();
+        for (int i = 0; i < totalPages; i++) {
+            if (i == page) {
+                pageNumbers.add("<li class='page-item active'><a class='page-link' href='/?page='" + String.valueOf(i) + ">" + String.valueOf(i) + "</a></li>");
+            } else {
+                pageNumbers.add("<li class='page-item'><a class='page-link' href='/?page=" + String.valueOf(i) + "'>" + String.valueOf(i) + "</a></li>");
+            }
+        }
+
+        LinkedList<Integer> pageList = new LinkedList<>();
+        for(int i = 0; i<= totalPages; i++){
+            pageList.add(i);
+            model.addAttribute("totalpages",pageList);
+        }
+
+    return "index";
+    }*/
     @GetMapping("/auth/join")
     public String join() {
        return "/login/join";

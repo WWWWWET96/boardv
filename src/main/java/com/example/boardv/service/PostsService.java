@@ -9,6 +9,7 @@ import com.example.boardv.domain.PostsRepository;
 import com.example.boardv.dto.PostsUpdateRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
@@ -24,14 +25,31 @@ public class PostsService {
          return postRepository.findAllDesc().stream()
                         .map(PostListResponseDto::new).
               collect(Collectors.toList());
-    }*/
+    }
    public Page<PostListResponseDto> findAllDesc(Pageable pageable) {
 
                Page<Posts> foundResult;
                foundResult = postRepository.findAllDesc(pageable);
 
                return foundResult.map(PostListResponseDto::new);
-   }
+   }  */
+   public Page<PostListResponseDto> findAll(Pageable pageable) {
+
+      /* PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Posts> foundResult;
+        foundResult = postRepository.findAllDesc(pageRequest);
+                return foundResult.map(PostListResponseDto::new);
+
+*/
+    return postRepository.findAll(pageable).map(PostListResponseDto::new);
+    }
+
+    public Boolean getListCheck(Pageable pageable){
+       Page<PostListResponseDto> saved = findAll(pageable);
+       Boolean check = saved.hasNext();
+
+       return check;
+    }
     @Transactional
     public Long save(PostsSaveRequestDto requestDto){
         return postRepository.save(requestDto.toEntity()).getId(); //dto는 entity로 변환해서 저장할 것
