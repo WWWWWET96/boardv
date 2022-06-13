@@ -2,25 +2,32 @@
 <br>
 <div class = "col-md-12">
     {{#posts}}
-    <div class="col-md-6">
-            <div class="border border-dark">
-                <span>제목</span><br>
-                <span class="mx-5">{{title}}</span>
+    <div class="md-6">
+            <div class="m-6 border border-dark rounded"><br>
+                <span class ="mx-3   font-weight-bold">제목</span><br><br>
+                <span class="mx-4">{{title}}</span><br><br>
             </div>
     <br>
-            <div class="border border-dark">
-                <span>작성자</span><br>
-               <span class="mx-5">{{author}}</span>
+            <div class="m-6 border border-dark rounded"><br>
+                <span class ="mx-3 font-weight-bold" >작성자</span><br><br>
+               <span class="mx-4">{{author}}</span><br><br>
             </div>
     <br>
-            <div class="border border-dark">
-                <span>내용</span><br>
-                <span class="mx-5">{{contents}}</span>
+            <div class="m-6 border border-dark rounded"><br>
+                <span class ="mx-3 font-weight-bold">내용</span><br><br>
+                <span class="mx-4">{{contents}}</span><br><br>
             </div>
     <br>
+<!-- user만 수정 삭제 가능해야하니까-->
+    {{#oauthor}}
+    <form  method="post" action="/api/v1/posts/delete/{{id}}">
+        <input type="hidden" name="_method" value="delete">
+        <a href="/api/v1/posts/update/{{id}}" role="button" class="btn btn-warning">수정</a>
+        <button type="submit" class="btn btn-danger">삭제</button>
+    </form>
+    {{/oauthor}}
+
     {{/posts}}
-            <a href="/" role="button" class="btn btn-primary">수정</a>
-            <a href="/" role="button" class="btn btn-secondary">삭제</a>
     </div>
 </div>
 

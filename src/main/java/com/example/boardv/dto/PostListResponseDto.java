@@ -1,6 +1,7 @@
 package com.example.boardv.dto;
 
 import com.example.boardv.domain.Posts;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -13,7 +14,9 @@ public class PostListResponseDto {
     private String author;
     private LocalDateTime modifiedDate;
 
+    @Builder
     public PostListResponseDto(Posts entity){
+
         this.id = entity.getId();
         this.title = entity.getTitle();
         this.author = entity.getAuthor();

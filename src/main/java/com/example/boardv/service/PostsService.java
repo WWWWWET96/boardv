@@ -8,6 +8,8 @@ import com.example.boardv.dto.PostsSaveRequestDto;
 import com.example.boardv.domain.PostsRepository;
 import com.example.boardv.dto.PostsUpdateRequestDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
@@ -18,12 +20,18 @@ import java.util.stream.Collectors;
 public class PostsService {
     private final PostsRepository postRepository;
 
-    public List<PostListResponseDto> findAllDesc() {
-        return
-        postRepository.findAllDesc().stream()
-                .map(PostListResponseDto::new)
-                .collect(Collectors.toList());
-    }
+   /* public List<PostListResponseDto> findAllDesc() {
+         return postRepository.findAllDesc().stream()
+                        .map(PostListResponseDto::new).
+              collect(Collectors.toList());
+    }*/
+   public Page<PostListResponseDto> findAllDesc(Pageable pageable) {
+
+               Page<Posts> foundResult;
+               foundResult = postRepository.findAllDesc(pageable);
+
+               return foundResult.map(PostListResponseDto::new);
+   }
     @Transactional
     public Long save(PostsSaveRequestDto requestDto){
         return postRepository.save(requestDto.toEntity()).getId(); //dto는 entity로 변환해서 저장할 것

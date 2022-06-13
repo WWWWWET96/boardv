@@ -4,23 +4,25 @@ import com.example.boardv.config.auth.dto.General.UserDto;
 import com.example.boardv.config.auth.dto.General.UserSessionDto;
 import com.example.boardv.config.auth.service.General.CustomUserDetailsService;
 import com.example.boardv.config.auth.service.General.UserService;
+import com.example.boardv.dto.PostListResponseDto;
 import com.example.boardv.service.PostsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 
 @RequiredArgsConstructor
 @Controller
@@ -30,8 +32,8 @@ public class IndexController {
     private final HttpSession httpSession;
     private final PostsService postsService;
 
-    @GetMapping("/")
-    public String index(Model model){
+/*    @GetMapping("/")
+    public String index(Model model   ){
 
           UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
         if(user != null)
@@ -41,8 +43,19 @@ public class IndexController {
         model.addAttribute("posts", postsService.findAllDesc());
 
         return "index";
-    }
+    }*/
+    @GetMapping("/")
+    public String index(Model model,Pageable pageable){
 
+        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
+        if(user != null)
+        {
+            model.addAttribute("user", user.getUsername());
+        }
+        model.addAttribute("posts", postsService.findAllDesc(pageable));
+
+        return "index";
+    }
 
     @GetMapping("/auth/join")
     public String join() {
@@ -68,15 +81,7 @@ public class IndexController {
         }
         return "redirect:/";
     }
-    @GetMapping("/posts/save")
-    public String postsSave(Model model){
-        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
-        if(user != null)
-        {
-            model.addAttribute("user", user.getUsername());
-        }
-        return "/post/save";
-    }
+
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response){
         new SecurityContextLogoutHandler().logout(request,response, SecurityContextHolder.getContext().getAuthentication());
