@@ -44,7 +44,7 @@ public class GeneralSecurityCofig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception{
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/","/resources/**", "/posts/save","/error", "/auth/**", "/api/v1/posts/**")
+                .antMatchers("/","/resources/**","/posts/**", "/posts/save","/error", "/auth/**", "/api/v1/posts/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()

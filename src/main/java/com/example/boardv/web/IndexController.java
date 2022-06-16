@@ -20,11 +20,12 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Controller
@@ -33,77 +34,62 @@ public class IndexController {
     private final CustomUserDetailsService customUserDetailsService;
     private final HttpSession httpSession;
     private final PostsService postsService;
-
-/*    @GetMapping("/")
-    public String index(Model model   ){
-
-          UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
-        if(user != null)
-        {
-            model.addAttribute("user", user.getUsername());
-        }
-        model.addAttribute("posts", postsService.findAllDesc());
-
-        return "index";
-    }*/
     @GetMapping("/")
-    public String index(Model model,@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+    public String index(Model model,
+                        @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
-        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
+        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");//세션 조회
         if(user != null)
         {
             model.addAttribute("user", user.getUsername());
         }
-        model.addAttribute("posts", postsService.findAll(pageable));
+        Page<PostListResponseDto> postlist = postsService.search(SearchType.ALL,null,pageable);
+      /* Stream<Object> responseDtoStream= postlist.stream().map(postListResponseDto -> postListResponseDto.getModifiedDate()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")));
+        List<String> responseStringList = responseDtoStream.map(Objects::toString).collect(Collectors.toList());
+
+        String[] dateList = new String[]{"modifiedDate", String.valueOf(responseStringList)};*/
+
+        model.addAttribute("posts", postlist); //전체 조회
         model.addAttribute("previous", pageable.previousOrFirst().getPageNumber());
         model.addAttribute("next", pageable.next().getPageNumber());
-        model.addAttribute("check", postsService.getListCheck(pageable));
+        model.addAttribute("checkNextPage", postsService.getNextPageCheck(SearchType.ALL, null, pageable)); //페이지가 더 있는지 확인하는 boolean
+        model.addAttribute("checkPreviousPage", postsService.getPreviousPageCheck(SearchType.ALL,null,pageable));
+
         return "index";
     }
-   /* @GetMapping("/")
-    public String index(Model model, @RequestParam(value = "page", defaultValue = "0") Integer page,
-                        @RequestParam(value = "size", defaultValue = "0" ) Integer size){
-        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
-        if(user != null)
-        {
-            model.addAttribute("user", user.getUsername());
-        }
-        model.addAttribute("posts", postsService.findAllDesc(page, size));
-
-        int totalPages = postsService.findAllDesc(page, size).getTotalPages();
 
 
-        System.out.println(totalPages);
-        ArrayList<String>pageNumbers = new ArrayList<>();
-        for (int i = 0; i < totalPages; i++) {
-            if (i == page) {
-                pageNumbers.add("<li class='page-item active'><a class='page-link' href='/?page='" + String.valueOf(i) + ">" + String.valueOf(i) + "</a></li>");
-            } else {
-                pageNumbers.add("<li class='page-item'><a class='page-link' href='/?page=" + String.valueOf(i) + "'>" + String.valueOf(i) + "</a></li>");
-            }
-        }
-
-        LinkedList<Integer> pageList = new LinkedList<>();
-        for(int i = 0; i<= totalPages; i++){
-            pageList.add(i);
-            model.addAttribute("totalpages",pageList);
-        }
-
-    return "index";
-    }*/
     @GetMapping("/auth/join")
-    public String join() {
-       return "/login/join";
+    public String join(Model model) {
+        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
+        if(user == null){
+            return "/login/join";
+        }
+        model.getAttribute("email");
+        model.addAttribute("username");
+       return "redirect:/";
     }
+
     @PostMapping("/auth/joinProc")
-    public String joinProc(UserDto userDto){
+    public String joinProc(UserDto userDto) {
+        if((userService.joinCheckByEmailDuplicate(userDto)==false) &&
+                (userService.joinCheckByUsernameDuplicate(userDto) ==false)){ //아이디나 이메일이 중복되면 경우
             userService.join(userDto);
-        return "redirect:/auth/login";
+            return"redirect:/auth/login";
+            }
+
+        return "redirect:/auth/join";
     }
 
     @GetMapping("/auth/login")
     public String login(){
-        return "/login/login";
+        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");//세션 조회
+        if(user == null){
+            return "/login/login";
+        }
+        return "redirect:/";
+
     }
 
     @PostMapping("/auth/loginProc")
@@ -119,7 +105,7 @@ public class IndexController {
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response){
         new SecurityContextLogoutHandler().logout(request,response, SecurityContextHolder.getContext().getAuthentication());
-        return "redirecte:/";
+        return "redirect:/";
     }
 
 
