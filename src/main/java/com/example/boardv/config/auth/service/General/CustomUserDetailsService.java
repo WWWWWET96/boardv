@@ -5,7 +5,6 @@ import com.example.boardv.config.auth.domain.user.General.User;
 import com.example.boardv.config.auth.domain.user.General.UserRepository;
 import com.example.boardv.config.auth.dto.General.UserSessionDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

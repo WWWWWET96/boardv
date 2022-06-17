@@ -5,8 +5,12 @@ import com.example.boardv.config.auth.dto.General.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 
 import javax.transaction.Transactional;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -32,5 +36,15 @@ public class UserService {
             return true;
         }
         return false;
+    }
+
+    public Map<String, String> validateHandling(Errors errors) {
+    Map<String, String> validatorResult = new HashMap<>();
+
+    for(FieldError error: errors.getFieldErrors()){
+        String validKeyName= String.format("valid_%s", error.getField());
+        validatorResult.put(validKeyName, error.getDefaultMessage());
+    }
+    return validatorResult;
     }
 }

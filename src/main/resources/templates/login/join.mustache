@@ -1,28 +1,36 @@
 {{>layout/header}}
-<h1>    회원가입</h1><br>
+<h1>    회원가입</h1>
 <div id="posts_list">
     <div class="container col-md-8">
-        <form action="/auth/joinProc" method="post">
-            {{#email}}
-                <h3>이미 존재하는 이메일입니다.</h3>
-                {{/email}}
-            {{#username}}
-                <h3>이미 존재하는 아이디입니다.</h3>
-                {{/username}}
+        <form action="/auth/joinProc" method="post" modelAttribute = "userDto">
+            {{#emailO}}
+                <h5>이미 존재하는 이메일입니다.</h5>
+                {{/emailO}}
+            {{#usernameO}}
+               <h5> 이미 존재하는 아이디입니다.</h5>
+                {{/usernameO}}
             <div class="form-group">
                 <label>아이디</label>
-                <input type="text" name="username" class="form-control" placeholder="아이디를 입력해주세요">
+                    <input type="text" name="username"
+                           value ="{{#userDto}}{{userDto.username}}{{/userDto}}" class="form-control" placeholder="아이디를 입력해주세요">
+                {{#valid_username}}<span id="valid">{{valid_username}}</span>{{/valid_username}}
             </div>
+
             <div class="form-group">
                 <label>비밀번호</label>
-                <input type="password" name="password" class="form-control" placeholder="비밀번호를 입력해주세요">
+                    <input type="password" name="password"
+                           value="{{#userDto}}{{password}}{{/userDto}}" class="form-control"
+                        placeholder="비밀번호를 입력해주세요">
+                {{#valid_password}}<span id="valid">{{valid_password}}</span>{{/valid_password}}
             </div>
+
             <div class="form-group">
                 <label>이메일</label>
-                <input type="email" name="email" class="form-control" placeholder="이메일을 입력해주세요">
+                <input type="email" name="email"
+                           value="{{#userDto}}{{email}}{{/userDto}}" class="form-control" placeholder="이메일을 입력해주세요.">
+{{#valid_email}}<span id="valid">{{valid_email}}</span> {{/valid_email}}
             </div>
             <button class="btn btn-primary bi bi-person"> 가입</button>
-
         </form>
     </div>
 </div>

@@ -2,22 +2,25 @@ package com.example.boardv.config.auth;
 
 import com.example.boardv.config.auth.service.General.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class GeneralSecurityCofig extends WebSecurityConfigurerAdapter {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final AuthenticationFailureHandler customFailureHandler; //로그인 실패 핸들러 의존성 주입
 
     @Bean
     public BCryptPasswordEncoder encoder(){
@@ -52,13 +55,15 @@ public class GeneralSecurityCofig extends WebSecurityConfigurerAdapter {
                 .formLogin()//login 경로로 접근하면, Spring Security에서 제공하는 로그인 Form을 사용가능
                 .loginPage("/auth/login")//기본으로 제공되는 form말고, 커스텀 로그인 폼을 사용하기위해 사용하는 메소드
                 .loginProcessingUrl("/auth/loginProc")//security에서 해당 주소로 오는 요청을 낚아채서 수행
+                .failureHandler(customFailureHandler)
                 .defaultSuccessUrl("/")//로그인 성공 시 이동되는 페이지
                 .and()
                 .logout()//"/logout"에 접근하면 HTTP세션을 제거해줌
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/")
-                .deleteCookies("JSESSIONID", "remember-me")
-                .invalidateHttpSession(true);//HTTP세션을 초기화하는 작업
+                .and()
+                .logout()
+                .invalidateHttpSession(true).deleteCookies("JSESSIONID");//HTTP세션을 초기화하는 작업
     }
 
 }

@@ -15,17 +15,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import javax.validation.Valid;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Controller
@@ -61,40 +58,62 @@ public class IndexController {
 
 
     @GetMapping("/auth/join")
-    public String join(Model model) {
+    public String join() {
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
         if(user == null){
             return "/login/join";
         }
-        model.getAttribute("email");
-        model.addAttribute("username");
-       return "redirect:/";
+        return "redirect:/";
     }
 
     @PostMapping("/auth/joinProc")
-    public String joinProc(UserDto userDto) {
-        if((userService.joinCheckByEmailDuplicate(userDto)==false) &&
-                (userService.joinCheckByUsernameDuplicate(userDto) ==false)){ //아이디나 이메일이 중복되면 경우
-            userService.join(userDto);
-            return"redirect:/auth/login";
-            }
+    public String joinProc(@Valid UserDto userDto, Errors errors, Model model) {
+        if(errors.hasErrors()){
+            model.addAttribute("userDto", userDto);
 
-        return "redirect:/auth/join";
+            Map<String, String> validatorResult = userService.validateHandling(errors);
+            for(String key: validatorResult.keySet()){
+                System.out.println(key);
+                model.addAttribute(key,validatorResult.get(key));
+            }
+        }
+
+        if (userService.joinCheckByUsernameDuplicate(userDto)) { //사용자이름 이미 있으면
+            model.addAttribute("usernameO", true);
+        }
+        if(userService.joinCheckByEmailDuplicate(userDto)) //email이미 있으면
+        {
+            model.addAttribute("emailO", true);
+        }
+        if(!userService.joinCheckByEmailDuplicate(userDto) && !userService.joinCheckByUsernameDuplicate(userDto))
+        {
+            userService.join(userDto);
+            model.addAttribute("saveUser", true);
+            return "/login/login";
+        } //여기 그냥 else하면 왜 안대지??
+
+        return "/login/join";
     }
 
     @GetMapping("/auth/login")
-    public String login(){
+    public String login(@RequestParam(value = "error", required = false)String error,
+                        @RequestParam(value = "exception", required = false) String exception,
+                        Model model) {
+        model.addAttribute("error", error);
+        model.addAttribute("exception", exception);
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");//세션 조회
-        if(user == null){
+        /*if(user == null){
             return "/login/login";
         }
-        return "redirect:/";
+        */
+        return "/login/login";
 
-    }
+    }/*
+문제: 아이디 맞고 비번 다르게 치면 로그인됨*/
 
     @PostMapping("/auth/loginProc")
     public String loginProc(String username, Model model){
-        customUserDetailsService.loadUserByUsername(username); //사용자 db에 있는지 확인
+       customUserDetailsService.loadUserByUsername(username) ;//사용자 db에 있는지 확인
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user"); //세션에서 user꺼내오기
         if(user != null){
             model.addAttribute("user", user.getUsername());

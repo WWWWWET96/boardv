@@ -26,10 +26,7 @@ public class PostsApiController {
                               @RequestParam(value = "keyword")String keyword, Model model,
                               @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");//세션 조회
-        if(user != null)
-        {
-            model.addAttribute("user", user.getUsername());
-        }
+
         model.addAttribute("searchList",postsService.search(searchType,keyword, pageable)); //검색어에 따른 조회
         model.addAttribute("previous", pageable.previousOrFirst().getPageNumber());
         model.addAttribute("next", pageable.next().getPageNumber());
@@ -41,22 +38,22 @@ public class PostsApiController {
     }
 
     @GetMapping("/api/v1/posts/{id}") //게시글 하나 보여줄 때
-    public String findById(@PathVariable Long id, Model model){
+    public String findById(@PathVariable Long id, Model model) {
         model.addAttribute("posts", postsService.findById(id));
 
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
-        if(user != null){
+        if(user != null){ //header에서 로그인 된 화면 보여줘야하니까
             model.addAttribute("user", user.getUsername());
 
-            if(postsService.findById(id).getAuthor().equals(user.getUsername())){ //세션정보와 해당 게시글의 작성자가 같으면
-                model.addAttribute("oauthor", user.getUsername());
-                System.out.println(model.getAttribute("oauthor"));
-            }
+        if (postsService.findById(id).getAuthor().equals(user.getUsername())) { //세션정보와 해당 게시글의 작성자가 같으면
+            model.addAttribute("oauthor", user.getUsername());
+            System.out.println(model.getAttribute("oauthor"));
         }
+    }
         return "/post/index";
     }
 
-    @GetMapping("/posts/save") //게시글 저장 시, 사용자 정보를 세션 정보 이용하여 저장
+    @GetMapping("/api/v1/posts/save") //게시글 저장 시, 사용자 정보를 세션 정보 이용하여 저장
     public String postsSave(Model model){
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
         if(user != null)
@@ -73,6 +70,10 @@ public class PostsApiController {
 
     @GetMapping("/api/v1/posts/update/{id}")
     public String update(@PathVariable Long id, Model model){ //글 번호 보여줘야하니까 model에 담아서 post 정보 넘겨줌
+        UserSessionDto user= (UserSessionDto) httpSession.getAttribute("user");
+        if(user !=null){ // header에서 보여줘야하니까
+            model.addAttribute("user",user.getUsername());
+        }
         model.addAttribute("posts", postsService.findById(id));
         return "/post/update";
     }

@@ -22,7 +22,7 @@ public class Posts extends BaseTimeEntity {
     @Column(length = 30, nullable = false)
     private String author;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT") //65,535 bytes
     private String contents;
 
 

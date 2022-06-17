@@ -1,5 +1,11 @@
 {{>layout/header}}
 <h1>    로그인</h1><br>
+{{#saveUser}}
+    <h4>성공적으로 회원가입이 되셨습니다.</h4>
+    {{/saveUser}}
+{{#userNotExisted}}
+    <h4>존재하지않는 아이디입니다.</h4>
+    {{/userNotExisted}}
 <div id="posts_list">
     <div class="container col-md-6">
         <form action="/auth/loginProc" method="post">
@@ -11,6 +17,12 @@
                 <label>비밀번호</label>
                 <input type="password" class="form-control" name="password" placeholder="비밀번호를 입력해주세요">
             </div>
+
+            <span>
+                {{#error}}
+                        <p id="valid" class="alert alert-danger">{{exception}}</p>
+                    {{/error}}
+            </span>
             <button class="btn btn-primary bi bi-person"> 로그인</button>
             <a href="/" role="button" class="btn btn-info bi bi-arrow-return-left"> HOME</a>
         </form>
