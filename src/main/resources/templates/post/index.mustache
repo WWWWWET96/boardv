@@ -3,6 +3,12 @@
 <div class = "col-md-12">
     {{#posts}}
     <div class="md-6">
+        <div class="m-6 border border-dark rounded"><br>
+            <span class ="mx-3   font-weight-bold">번호</span><br><br>
+            <span class="mx-4">{{id}}</span><br><br>
+        </div>
+        <br>
+    <div class="md-6">
             <div class="m-6 border border-dark rounded"><br>
                 <span class ="mx-3   font-weight-bold">제목</span><br><br>
                 <span class="mx-4">{{title}}</span><br><br>
@@ -18,11 +24,17 @@
                 <span class="mx-4">{{contents}}</span><br><br>
             </div>
     <br>
+    {{/posts}}
+    {{^user}}
+    <a href="/" role="button" class="btn btn-primary">HOME</a>
+    <br><br><br>
+        {{/user}}
+{{#posts}}
 <!-- user만 수정 삭제 가능해야하니까-->
     {{#oauthor}}
-    <form  method="post" action="/api/v1/posts/delete/{{id}}">
+    <form  method="post" action="/posts/delete/{{id}}">
         <input type="hidden" name="_method" value="delete">
-        <a href="/api/v1/posts/update/{{id}}" role="button" class="btn btn-warning">수정</a>
+        <a href="/posts/update/{{id}}" role="button" class="btn btn-warning">수정</a>
         <button type="submit" class="btn btn-danger">삭제</button>
     </form>
     {{/oauthor}}

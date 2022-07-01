@@ -1,9 +1,11 @@
-package com.example.boardv.web;
+package com.example.boardv.domain.web;
 
 import com.example.boardv.config.auth.dto.General.UserDto;
 import com.example.boardv.config.auth.dto.General.UserSessionDto;
 import com.example.boardv.config.auth.service.General.CustomUserDetailsService;
 import com.example.boardv.config.auth.service.General.UserService;
+import com.example.boardv.config.auth.validator.CheckEmailValidator;
+import com.example.boardv.config.auth.validator.CheckUsernameValidator;
 import com.example.boardv.dto.PostListResponseDto;
 import com.example.boardv.service.PostsService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,19 +31,26 @@ import java.util.Map;
 @Controller
 public class IndexController {
     private final UserService userService;
-    private final CustomUserDetailsService customUserDetailsService;
     private final HttpSession httpSession;
     private final PostsService postsService;
+    private final CheckUsernameValidator checkUsernameValidator;
+    private final CheckEmailValidator checkEmailValidator;
+    private final CustomUserDetailsService customUserDetailsService;
+    @InitBinder //커스텀 유효성 검증을 위해 추가
+    public void validatorBinder(WebDataBinder binder) {
+        binder.addValidators(checkUsernameValidator);
+        binder.addValidators(checkEmailValidator);
+    }
+
     @GetMapping("/")
     public String index(Model model,
-                        @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+                        @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");//세션 조회
-        if(user != null)
-        {
+        if (user != null) {
             model.addAttribute("user", user.getUsername());
         }
-        Page<PostListResponseDto> postlist = postsService.search(SearchType.ALL,null,pageable);
+        Page<PostListResponseDto> postlist = postsService.search(SearchType.ALL, null, pageable);
       /* Stream<Object> responseDtoStream= postlist.stream().map(postListResponseDto -> postListResponseDto.getModifiedDate()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS")));
         List<String> responseStringList = responseDtoStream.map(Objects::toString).collect(Collectors.toList());
@@ -51,7 +61,7 @@ public class IndexController {
         model.addAttribute("previous", pageable.previousOrFirst().getPageNumber());
         model.addAttribute("next", pageable.next().getPageNumber());
         model.addAttribute("checkNextPage", postsService.getNextPageCheck(SearchType.ALL, null, pageable)); //페이지가 더 있는지 확인하는 boolean
-        model.addAttribute("checkPreviousPage", postsService.getPreviousPageCheck(SearchType.ALL,null,pageable));
+        model.addAttribute("checkPreviousPage", postsService.getPreviousPageCheck(SearchType.ALL, null, pageable));
 
         return "index";
     }
@@ -60,7 +70,7 @@ public class IndexController {
     @GetMapping("/auth/join")
     public String join() {
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
-        if(user == null){
+        if (user == null) {
             return "/login/join";
         }
         return "redirect:/";
@@ -68,31 +78,18 @@ public class IndexController {
 
     @PostMapping("/auth/joinProc")
     public String joinProc(@Valid UserDto userDto, Errors errors, Model model) {
-        if(errors.hasErrors()){
-            model.addAttribute("userDto", userDto);
+        if (errors.hasErrors()) {
+            model.addAttribute("userDto", userDto);//회원가입 실패시 입력 데이터 값을 유지
 
+            //유효성 통과 못한 필드와 메시지를 핸들링
             Map<String, String> validatorResult = userService.validateHandling(errors);
-            for(String key: validatorResult.keySet()){
-                System.out.println(key);
-                model.addAttribute(key,validatorResult.get(key));
+            for (String key : validatorResult.keySet()) {
+                model.addAttribute(key, validatorResult.get(key));
             }
+            return "/login/join";
         }
-
-        if (userService.joinCheckByUsernameDuplicate(userDto)) { //사용자이름 이미 있으면
-            model.addAttribute("usernameO", true);
-        }
-        if(userService.joinCheckByEmailDuplicate(userDto)) //email이미 있으면
-        {
-            model.addAttribute("emailO", true);
-        }
-        if(!userService.joinCheckByEmailDuplicate(userDto) && !userService.joinCheckByUsernameDuplicate(userDto))
-        {
-            userService.join(userDto);
-            model.addAttribute("saveUser", true);
-            return "/login/login";
-        } //여기 그냥 else하면 왜 안대지??
-
-        return "/login/join";
+        userService.join(userDto);
+        return "redirect:/auth/login";
     }
 
     @GetMapping("/auth/login")
@@ -102,18 +99,17 @@ public class IndexController {
         model.addAttribute("error", error);
         model.addAttribute("exception", exception);
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");//세션 조회
-        /*if(user == null){
-            return "/login/login";
+        if(user != null){
+            return "redirect:/";
         }
-        */
         return "/login/login";
 
     }/*
 문제: 아이디 맞고 비번 다르게 치면 로그인됨*/
 
     @PostMapping("/auth/loginProc")
-    public String loginProc(String username, Model model){
-       customUserDetailsService.loadUserByUsername(username) ;//사용자 db에 있는지 확인
+    public String loginProc(UserDto userDto, Model model){
+      customUserDetailsService.loadUserByUsername(userDto.getUsername()) ;//사용자 db에 있는지 확인
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user"); //세션에서 user꺼내오기
         if(user != null){
             model.addAttribute("user", user.getUsername());

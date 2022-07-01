@@ -20,10 +20,10 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 public class GeneralSecurityCofig extends WebSecurityConfigurerAdapter {
 
     private final CustomUserDetailsService customUserDetailsService;
-    private final AuthenticationFailureHandler customFailureHandler; //로그인 실패 핸들러 의존성 주입
+    private final CustomAuthFailureHandler customFailureHandler; //로그인 실패 핸들러 의존성 주입
 
     @Bean
-    public BCryptPasswordEncoder encoder(){
+    public BCryptPasswordEncoder encoder(){ //시큐리티가 로그인 과정에서 password를 가로챌 때 어떤 해쉬로 암호화했는지 확인
         return new BCryptPasswordEncoder();
     }
 //    * Spring security에서 모든 인증처리는 AuthenticationManager를 통해 이루어지는데,
@@ -55,7 +55,7 @@ public class GeneralSecurityCofig extends WebSecurityConfigurerAdapter {
                 .formLogin()//login 경로로 접근하면, Spring Security에서 제공하는 로그인 Form을 사용가능
                 .loginPage("/auth/login")//기본으로 제공되는 form말고, 커스텀 로그인 폼을 사용하기위해 사용하는 메소드
                 .loginProcessingUrl("/auth/loginProc")//security에서 해당 주소로 오는 요청을 낚아채서 수행
-                .failureHandler(customFailureHandler)
+                .failureHandler(customFailureHandler)//로그인 실패 핸들러
                 .defaultSuccessUrl("/")//로그인 성공 시 이동되는 페이지
                 .and()
                 .logout()//"/logout"에 접근하면 HTTP세션을 제거해줌

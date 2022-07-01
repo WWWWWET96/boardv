@@ -3,11 +3,13 @@
 <br>
 <div class = "col-md-12">
     <div class="col-md-4">
-        <form class="container" method="post" action="/api/v1/posts" >
+        <form class="container" method="post" action="/posts/save" modelAttribute = "userDto" >
             <div class = "form-group">
                 <label for="title">제목</label>
                 <!--name과 변수명이 같아야 제대로 전송됨-->
-                <input name="title" type="text" class="form-control" id="article-title" placeholder="제목을 입력하세요">
+                <input name="title" type="text" class="form-control"
+                       value="{{#requestDto}}{{requestDto.title}}{{/requestDto}}" id="article-title" placeholder="제목을 입력하세요">
+                {{#valid_title}}<span class="mx-3 text-danger">양식에 맞게 타이틀을 적어주세요.(1자 이상~30자 이하)</span>{{/valid_title}}
             </div>
             <div class="form-group">
                 <label for="author">작성자</label><br>
@@ -18,7 +20,9 @@
             </div>
             <div class="form-group">
                 <label for="form-label">내용</label>
-                <textarea class="form-control" name="contents"  placeholder="내용을 입력하세요"></textarea>
+                <textarea class="form-control" name="contents"
+                          placeholder="내용을 입력하세요">{{#requestDto}}{{requestDto.contents}}{{/requestDto}}</textarea>
+                {{#valid_contents}}<span class="mx-3 text-danger">양식에 맞게 내용을 적어주세요</span>{{/valid_contents}}
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
             <a href="/" role="button" class="btn btn-primary">취소</a>

@@ -16,7 +16,7 @@ import javax.validation.constraints.Size;
 public class UserDto {
 
     @NotBlank(message = "아이디를 입력해주세요.") //입력폼이 비어있는 상태로 요청을 보내면 해당 에러 메시지가 나타남
-    @Size(min = 2, max = 30, message = "닉네임은 2자 이상 30자 이하로 입력해주세요.") //지정된 사이즈에 벗어나는 값 입력시 해당 에러 메시지 나타남
+    @Size(min = 2, max = 30, message = "아이디는 2자 이상 30자 이하로 입력해주세요.") //지정된 사이즈에 벗어나는 값 입력시 해당 에러 메시지 나타남
     private String username;
 
     @NotBlank(message = "비밀번호를 입력해주세요.")

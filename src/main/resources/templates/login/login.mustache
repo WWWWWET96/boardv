@@ -3,12 +3,9 @@
 {{#saveUser}}
     <h4>성공적으로 회원가입이 되셨습니다.</h4>
     {{/saveUser}}
-{{#userNotExisted}}
-    <h4>존재하지않는 아이디입니다.</h4>
-    {{/userNotExisted}}
 <div id="posts_list">
     <div class="container col-md-6">
-        <form action="/auth/loginProc" method="post">
+        <form action="/auth/loginProc" method="post" >
             <div class="form-group">
                 <label>아이디</label>
                 <input type="text" class="form-control" name="username" placeholder="아이디를 입력해주세요">

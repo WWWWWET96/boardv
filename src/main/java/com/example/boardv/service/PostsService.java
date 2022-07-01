@@ -7,12 +7,17 @@ import com.example.boardv.dto.PostsResponseDto;
 import com.example.boardv.dto.PostsSaveRequestDto;
 import com.example.boardv.domain.PostsRepository;
 import com.example.boardv.dto.PostsUpdateRequestDto;
-import com.example.boardv.web.SearchType;
+import com.example.boardv.domain.web.SearchType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RequiredArgsConstructor
@@ -89,11 +94,13 @@ public class PostsService {
         postRepository.deleteById(id);
     }
 
-    //전체 게시글 삭제
-    @Transactional
-    public void deleteAll() {
-       postRepository.deleteAll();
+    public Map<String, String> validateHandling(Errors errors){
+        Map<String, String> validatorResult = new HashMap<>();
+
+        for(FieldError error: errors.getFieldErrors()){
+            String validKeyName = String.format("valid_%s", error.getField());
+            validatorResult.put(validKeyName, error.getDefaultMessage());
+        }
+        return validatorResult;
     }
-
-
 }

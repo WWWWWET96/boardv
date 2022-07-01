@@ -1,5 +1,6 @@
-package com.example.boardv.web;
+package com.example.boardv.domain.web;
 
+import com.example.boardv.config.auth.domain.user.General.User;
 import com.example.boardv.config.auth.dto.General.UserSessionDto;
 import com.example.boardv.dto.PostsSaveRequestDto;
 import com.example.boardv.dto.PostsUpdateRequestDto;
@@ -11,9 +12,12 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Controller
@@ -26,7 +30,9 @@ public class PostsApiController {
                               @RequestParam(value = "keyword")String keyword, Model model,
                               @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");//세션 조회
-
+        if(user != null) { //header에서 로그인 된 화면 보여줘야하니까
+            model.addAttribute("user", user.getUsername());
+        }
         model.addAttribute("searchList",postsService.search(searchType,keyword, pageable)); //검색어에 따른 조회
         model.addAttribute("previous", pageable.previousOrFirst().getPageNumber());
         model.addAttribute("next", pageable.next().getPageNumber());
@@ -37,62 +43,100 @@ public class PostsApiController {
         return "searchIndex";
     }
 
-    @GetMapping("/api/v1/posts/{id}") //게시글 하나 보여줄 때
+    @GetMapping("/posts/{id}") //게시글 하나 보여줄 때
     public String findById(@PathVariable Long id, Model model) {
         model.addAttribute("posts", postsService.findById(id));
 
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
-        if(user != null){ //header에서 로그인 된 화면 보여줘야하니까
+        if(user != null) { //header에서 로그인 된 화면 보여줘야하니까
             model.addAttribute("user", user.getUsername());
 
-        if (postsService.findById(id).getAuthor().equals(user.getUsername())) { //세션정보와 해당 게시글의 작성자가 같으면
-            model.addAttribute("oauthor", user.getUsername());
-            System.out.println(model.getAttribute("oauthor"));
+            if (postsService.findById(id).getAuthor().equals(user.getUsername())) { //세션정보와 해당 게시글의 작성자가 같으면
+                model.addAttribute("oauthor", user.getUsername()); // 해당 게시글의 수정,삭제 버튼 추가
+            }
         }
-    }
         return "/post/index";
+
     }
 
-    @GetMapping("/api/v1/posts/save") //게시글 저장 시, 사용자 정보를 세션 정보 이용하여 저장
+    @GetMapping("/posts/save") //게시글 저장 시, 사용자 정보를 세션 정보 이용하여 저장
     public String postsSave(Model model){
         UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
         if(user != null)
         {
             model.addAttribute("user", user.getUsername());
+            return "/post/save";
         }
-        return "/post/save";
+       return "redirect:/auth/login";
     }
-    @PostMapping(value = "/api/v1/posts", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public String saveForFormRequest(PostsSaveRequestDto requestDto){
+
+    //중복검사같은것도 필요없으니까, 공백일 경우만 체크해서 표시되게
+
+
+    @PostMapping(value = "/posts/save", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public String saveForFormRequest(@Valid PostsSaveRequestDto requestDto
+        , Errors errors, Model model){
+        UserSessionDto user = (UserSessionDto) httpSession.getAttribute("user");
+        if(user != null)
+        {
+            model.addAttribute("user", user.getUsername());
+        }
+        if(errors.hasErrors()){
+            model.addAttribute("requestDto", requestDto);
+            Map<String, String> validatorResult = postsService.validateHandling(errors);
+            for(String key: validatorResult.keySet()){
+                System.out.println(key);
+                model.addAttribute(key,validatorResult.get(key));
+            }
+            return "/post/save";
+        }
         postsService.save(requestDto);
         return "redirect:/";
     }
 
-    @GetMapping("/api/v1/posts/update/{id}")
+    @GetMapping("/posts/update/{id}")
     public String update(@PathVariable Long id, Model model){ //글 번호 보여줘야하니까 model에 담아서 post 정보 넘겨줌
         UserSessionDto user= (UserSessionDto) httpSession.getAttribute("user");
         if(user !=null){ // header에서 보여줘야하니까
             model.addAttribute("user",user.getUsername());
+            model.addAttribute("posts", postsService.findById(id));
+            if(postsService.findById(id).getAuthor().equals(user.getUsername())){
+                return "/post/update";
+            }
+        }
+
+        return "redirect:/auth/login";
+    }
+
+    //id로 작성자 찾고, 그거랑 user비교하기기
+
+   @PutMapping(value = "/posts/update/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public String updateForFormRequest(@PathVariable Long id,
+                                       @Valid PostsUpdateRequestDto requestDto, Errors errors, Model model){
+        UserSessionDto user= (UserSessionDto) httpSession.getAttribute("user");
+
+        if(user !=null){ // header에서 보여줘야하니까
+            model.addAttribute("user",user.getUsername());
         }
         model.addAttribute("posts", postsService.findById(id));
-        return "/post/update";
-    }
 
-    @PutMapping(value = "/api/v1/posts/update/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public String updateForFormRequest(@PathVariable Long id, PostsUpdateRequestDto requestDto){
+        if(errors.hasErrors()){
+            model.addAttribute("requestDto", requestDto);
+            Map<String, String> validatorResult = postsService.validateHandling(errors);
+            for(String key: validatorResult.keySet()){
+                System.out.println(key);
+                model.addAttribute(key,validatorResult.get(key));
+            }
+            return "/post/update";
+        }
         postsService.update(id,requestDto);
-        return "redirect:/";
+        return "redirect:/posts/{id}";
     }
 
-    @DeleteMapping("/api/v1/posts/delete/{id}")
+    @DeleteMapping("/posts/delete/{id}")
     public String deleteById(@PathVariable Long id){
         postsService.deleteById(id);
         return "redirect:/";
-    }
-
-    @DeleteMapping("/api/v1/posts/deleteAll")
-    public void deleteAll(){
-        postsService.deleteAll();
     }
 
 

@@ -24,20 +24,6 @@ public class UserService {
         return userRepository.save(dto.toEntity()).getId();//암호화 후 db 저장
     }
 
-    public Boolean joinCheckByEmailDuplicate(UserDto userDto)  {
-        if(userRepository.existsByEmail(userDto.getEmail())) //해당 email 이미 있는 경우
-        {return true;}
-        return false;
-    }
-
-    public Boolean joinCheckByUsernameDuplicate(UserDto userDto) {
-
-        if(userRepository.findByUsername(userDto.getUsername()).isPresent()){ //해당 username 이미 있는 경우
-            return true;
-        }
-        return false;
-    }
-
     public Map<String, String> validateHandling(Errors errors) {
     Map<String, String> validatorResult = new HashMap<>();
 

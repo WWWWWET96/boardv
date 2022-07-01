@@ -5,7 +5,7 @@
 <div class ="row">
     {{#user}}
     <div class="col-md-6">
-        <a href="/api/v1/posts/save" role="button" class="btn btn-primary">글 등록</a>
+        <a href="/posts/save" role="button" class="btn btn-primary">글 등록</a>
     </div>
         {{/user}}
 </div>
@@ -26,7 +26,7 @@
             <tr>
                 <td>{{id}}</td>
                 <td>
-                    <a href="/api/v1/posts/{{id}}">{{title}}</a>
+                    <a href="/posts/{{id}}">{{title}}</a>
                         </td>
                 <td>{{author}}</td>
                 <td>{{modifiedDate}}</td>
